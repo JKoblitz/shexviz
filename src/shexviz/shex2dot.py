@@ -61,7 +61,6 @@ start = @:subject
 
 def shex2dot(shex, graphviz_name, format="png", rankdir="LR"):
     def process_tc(tc, shape_id):
-        print(tc)
         dotschema.node(startshape.replace(":", ""), startshape, shape=symbol["iri"])
         if isinstance(tc, TripleConstraint):
             if isinstance(tc.valueExpr, IRIREF):
@@ -125,7 +124,6 @@ def shex2dot(shex, graphviz_name, format="png", rankdir="LR"):
     for line in shex.splitlines():
         if line.startswith("PREFIX"):
             line = line.replace("PREFIX", "")
-            print(line)
             prefix, uri = line.split(": ")
             prefix = prefix.strip()
             uri = uri.strip()
@@ -134,10 +132,8 @@ def shex2dot(shex, graphviz_name, format="png", rankdir="LR"):
 
     loader = SchemaLoader()
     schema = loader.loads(shex)
-    print(f"Valid: {schema._is_valid()}")
-    print(schema.shapes[0].expression.expressions)
+
     for shape in schema.shapes:
-        print(shape.id)
         startshape = shape.id
         for key in prefixmap.keys():
             startshape = startshape.replace(key, prefixmap[key]+":")
