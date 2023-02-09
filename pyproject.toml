@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vizshex"
-version = "0.0.1"
+version = "0.0.2"
 description = "Visualize ShEx shapes"
 readme = "README.md"
 authors = [{ name = "Andra Waagmeester", email = "andra@micelio.be" }]
