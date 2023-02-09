@@ -5,5 +5,5 @@ try:
 except ModuleNotFoundError:
     import tomli as tomllib
 
-__version__ = "0.0.4"
+
 
