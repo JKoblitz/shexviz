@@ -28,8 +28,8 @@ start = @:source
     dcat:keyword ["triple-negative breast cancer" "glioblastoma" "tuberculosis"] ;
     dcat:mediaType ["application/csv"];
     dcat:contactPoint @dtdata:contact + ;
-    dcat:accessURL xsd:string;
-    dct:issued xsd:date;
+    dcat:accessURL xsd:string ? ;
+    dct:issued xsd:date *;
     dct:modified xsd:date;
     dct:accessRights [acr:PUBLIC acr:RESTRICTED acr:INFORMATIVE acr:CONFIDENTIAL] ;
 }
@@ -45,6 +45,14 @@ def shex2dot(shex, graphviz_name, format="png", rankdir="LR"):
     def process_tc(tc, shape_id):
         dotschema.node(startshape.replace(":", ""), startshape, shape=symbol["iri"])
         if isinstance(tc, TripleConstraint):
+            if tc.max == None and tc.min == None:
+                arrowhead = "normal"
+            elif tc.max == 1 and tc.min == 0:
+                arrowhead = "teeodot"
+            elif tc.max == -1 and tc.min == 1:
+                arrowhead = "crowtee"
+            elif tc.max == -1 and tc.min == 0:
+                arrowhead = "crowdot"
             if isinstance(tc.valueExpr, IRIREF):
                 node = tc.valueExpr
                 predicate = tc.predicate
@@ -52,9 +60,8 @@ def shex2dot(shex, graphviz_name, format="png", rankdir="LR"):
                     node = node.replace(key, prefixmap[key])
                     predicate = predicate.replace(key, prefixmap[key] + ":")
                 dotschema.node(node, node, shape=symbol["iri"])
-                dotschema.edge(shape.id.split("/")[-1], node, label=predicate)
+                dotschema.edge(shape.id.split("/")[-1], node, label=predicate, arrowhead=arrowhead)
             elif isinstance(tc.valueExpr, NodeConstraint):
-
                 if tc.valueExpr.datatype:
                     datatype = tc.valueExpr.datatype
                     predicate = tc.predicate
@@ -67,7 +74,7 @@ def shex2dot(shex, graphviz_name, format="png", rankdir="LR"):
                     dotschema.edge(shape.id.split("/")[-1],
                                    shape.id.split("/")[-1] + tc.valueExpr.datatype.split("/")[-1] +
                                    tc.predicate.split("/")[
-                                       -1], label=predicate)
+                                       -1], label=predicate, arrowhead=arrowhead)
                 elif tc.valueExpr.values:
                     oneofs = []
                     predicate = tc.predicate
@@ -95,13 +102,13 @@ def shex2dot(shex, graphviz_name, format="png", rankdir="LR"):
                     dotschema.node(tc.valueExpr.nodeKind, tc.valueExpr.nodeKind.split("/")[-1],
                                    shape=symbol[tc.valueExpr.nodeKind])
                     dotschema.edge(shape.id.split("/")[-1], tc.valueExpr.nodeKind.split("/")[-1],
-                                   label=tc.predicate.split("/")[-1])
+                                   label=tc.predicate.split("/")[-1], arrowhead="teedot")
                 elif tc.valueExpr.xone:
 
                     dotschema.node(tc.valueExpr.xone[0].id, tc.valueExpr.xone[0].id.split("/")[-1],
                                    shape=symbol["oneof"])
                     dotschema.edge(shape.id.split("/")[-1], tc.valueExpr.xone[0].id.split("/")[-1],
-                                   label=tc.predicate.split("/")[-1])
+                                   label=tc.predicate.split("/")[-1], arrowhead="teedot")
                 else:
                     pass
                     # print("No valueExpr")
