@@ -12,50 +12,32 @@ symbol["bnode"]='point'
 symbol["oneof"]='record'
 
 shex = """
-IMPORT <file_metadata.shex>
-PREFIX : <http://example.org/>
-PREFIX filemeta: <file_metadata.shex>
-PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX : <http://placeholder.semscape.org/source_data/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX obo: <http://purl.obolibrary.org/obo/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX sio: <http://semanticscience.org/resource/>
-PREFIX qudt: <http://qudt.org/schema/qudt/>
-PREFIX unit: <http://qudt.org/vocab/unit/>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX acr: <http://publications.europa.eu/resource/authority/access-right/>
+PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
 
-start = @:subject
+start = @:source
 
-:subject {
-    dct:isPartOf filemeta:fileURI ;
-    rdf:type [obo:NCIT_C16960] ; # Patient
-    dct:identifier xsd:string ;
-    sio:SIO_000223 @:subjectProperties ;
-
+:source {
+    rdf:type [dcat:Dataset] ;
+    dcat:keyword ["triple-negative breast cancer" "glioblastoma" "tuberculosis"] ;
+    dcat:mediaType ["application/csv"];
+    dcat:contactPoint @dtdata:contact + ;
+    dcat:accessURL xsd:string;
+    dct:issued xsd:date;
+    dct:modified xsd:date;
+    dct:accessRights [acr:PUBLIC acr:RESTRICTED acr:INFORMATIVE acr:CONFIDENTIAL] ;
 }
 
-:subjectProperties {
-    obo:TXPO_0001873 @:BMI ;
-    obo:TXPO_0001873 @:HgbA1c ;
-    ccf:has_ethnicity @:etnicity ;
-}
-
-:etnicity {
-    rdfs:subClassOf [obo:NCIT_C16564] ; ## etnic group
-}
-
-:BMI {
-    rdf:type qudt:Quantity ;
-    qudt:hasQuantityKind [obo:NCIT_C16358] ; # Body Mass Index
-    qudt:unit [unit:KiloGM-PER-M2] ; # kg/m^2
-    qudt:numericValue xsd:decimal ; # 18.5 - 24.9
-}
-
-:HgbA1c {
-    rdf:type qudt:Quantity ;
-    qudt:hasQuantityKind [obo:NCIT_C64849] ; # HgbA1c
-    qudt:unit [unit:MilliMOL-PER-MOL] ; # mmol/mol
-    qudt:numericValue xsd:decimal ;
+:contact {
+    rdf:type [vcard:Individual] ;
+    vcard:fn xsd:string ;
+    vcard:hasEmail xsd:string ;
 }
   """
 
@@ -90,9 +72,15 @@ def shex2dot(shex, graphviz_name, format="png", rankdir="LR"):
                     oneofs = []
                     predicate = tc.predicate
                     for value in tc.valueExpr.values:
-                        for key in prefixmap.keys():
-                            value = value.replace(key, prefixmap[key] + ":")
-                        oneofs.append(value)
+                        if isinstance(value, ObjectLiteral):
+                            oneofs.append(value.value)
+                        else:
+                            for key in prefixmap.keys():
+                                try:
+                                    value = value.replace(key, prefixmap[key] + ":")
+                                except:
+                                    value = "a"
+                            oneofs.append(value)
                     for key in prefixmap.keys():
                         predicate = predicate.replace(key, prefixmap[key] + ":")
                     dotschema.node(
@@ -115,9 +103,11 @@ def shex2dot(shex, graphviz_name, format="png", rankdir="LR"):
                     dotschema.edge(shape.id.split("/")[-1], tc.valueExpr.xone[0].id.split("/")[-1],
                                    label=tc.predicate.split("/")[-1])
                 else:
-                    print("No valueExpr")
+                    pass
+                    # print("No valueExpr")
             else:
-                print("No valueExpr")
+                pass
+                # print("No valueExpr")
     dotschema = graphviz.Digraph(graphviz_name, format="png")
     dotschema.attr(rankdir=rankdir)
     prefixmap = dict()
@@ -134,6 +124,8 @@ def shex2dot(shex, graphviz_name, format="png", rankdir="LR"):
     schema = loader.loads(shex)
 
     for shape in schema.shapes:
+        if id in (dir(shape)):
+            continue
         startshape = shape.id
         for key in prefixmap.keys():
             startshape = startshape.replace(key, prefixmap[key]+":")
@@ -153,5 +145,5 @@ def save_graphviz(dotschema, filename):
     return dotschema.render(filename)
 
 
-
+view_graphviz(shex2dot(shex, "bloembloem"))
 
