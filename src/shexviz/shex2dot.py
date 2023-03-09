@@ -12,32 +12,42 @@ symbol["bnode"]='point'
 symbol["oneof"]='record'
 
 shex = """
-PREFIX : <http://placeholder.semscape.org/source_data/>
-PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX dcat: <http://www.w3.org/ns/dcat#>
-PREFIX dct: <http://purl.org/dc/terms/>
-PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX my: <http://my.example/ns#>
+PREFIX agschemas: <https://agschemas.org/>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX acr: <http://publications.europa.eu/resource/authority/access-right/>
-PREFIX vcard: <http://www.w3.org/2006/vcard/ns#>
+PREFIX nalt: <https://lod.nal.usda.gov/nalt/>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX schema: <http://schema.org/>
+PREFIX qudt: <http://qudt.org/schema/qudt/>
 
-start = @:source
-
-:source {
-    rdf:type [dcat:Dataset] ;
-    dcat:keyword ["triple-negative breast cancer" "glioblastoma" "tuberculosis"] ;
-    dcat:mediaType ["application/csv"];
-    dcat:contactPoint @dtdata:contact + ;
-    dcat:accessURL xsd:string ? ;
-    dct:issued xsd:date *;
-    dct:modified xsd:date;
-    dct:accessRights [acr:PUBLIC acr:RESTRICTED acr:INFORMATIVE acr:CONFIDENTIAL] ;
+<#Location> {
+  a [nalt:52296] ;
+  dct:identifier xsd:string ;
+  schema:latitude my:LATITUDE ;
+  schema:longitude my:LONGITUDE ;
+  schema:elavation my:FOOT ;
 }
 
-:contact {
-    rdf:type [vcard:Individual] ;
-    vcard:fn xsd:string ;
-    vcard:hasEmail xsd:string ;
+<#HarvestLocation> EXTENDS @<#Location> {
+  agschemas:nearbyWeatherStation @<#WeatherStation> + ;
+}
+
+<#WeatherStation> EXTENDS @<#Location> {
+}
+
+<#WeatherAssociation> {
+  my:growthSite @<#Location> ;
+  my:weatherStation @<#WeatherStation> ;
+  my:radius my:MILE ;
+  my:relevance xsd:decimal ; # 0: worst e.g different climate, 1: best
+}
+
+<#WeatherSample> {
+  my:weatherStation @<#WeatherStation> ;
+  my:timestamp xsd:dateTime ;
+  my:minTemp my:DEG_F ;
+  my:maxTemp my:DEG_F ; 
+  my:precipitation my:IN ;
 }
   """
 
